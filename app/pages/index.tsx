@@ -4,7 +4,7 @@ import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import { createInlineScript } from "create-script/react";
 
-console.log("createInlineScript", createInlineScript("./inline.ts"));
+const InlineJs = createInlineScript("./inline.ts");
 
 const Home: NextPage = () => {
   return (
@@ -16,6 +16,7 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
+        <InlineJs />
         <h1 className={styles.title}>
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
