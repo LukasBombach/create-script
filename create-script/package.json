@@ -1,0 +1,9 @@
+{
+  "name": "create-script",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "webpack/index.js",
+  "files": [
+    "react/index.js"
+  ]
+}
