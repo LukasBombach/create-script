@@ -4,10 +4,12 @@
   "license": "MIT",
   "main": "webpack/index.js",
   "files": [
-    "react/index.js"
+    "react/index.js",
+    "next/index.js"
   ],
   "devDependencies": {
-    "@types/react": "17.0.37"
+    "@types/react": "17.0.37",
+    "webpack": "5.65.0"
   },
   "peerDependencies": {
     "react": ">17"
