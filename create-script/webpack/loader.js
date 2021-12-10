@@ -17,26 +17,25 @@ const { fs: memfs } = require("memfs");
  *    problem independent of being called with the next js server
  *    or client config.
  */
-module.exports = function vanillaExtractJsLoader(content, map, meta) {
-  const COMPILER_NAME = "vanillaExtractJsCompiler";
+module.exports = function createScriptLoader(content, map, meta) {
+  const COMPILER_NAME = "CreateScriptCompiler";
   const EntryOptionPlugin = this._compiler.webpack.EntryOptionPlugin;
   const outputOptions = { filename: "output.js" };
   const loaderCallback = this.async();
 
-  /**
-   * We are transforming the output with this loader, as most loaders do,
-   * but we do not properly tell webpack how we are transforming code yet.
-   * Until we figure out how to do this, we will be running into issues
-   * where webpack has problems with caching the files processed with this
-   * loader, so we are disabling the caching this file.
-   *
-   * Hint: We probably need to declare the dependencies of the loaded files
-   * properly
-   */
-  this.cacheable(false);
+  const pathToCompile = /createInlineScript\(['"](?<path>.+?)['"]\)/.exec(content)?.groups?.path;
 
   /**
-   * This is imporatant to prevent recursion, otherwise this compiler
+   * If a file loaded with this compiler does not use createInlineScript
+   *  we do mot have to do anything
+   */
+  if (!pathToCompile) {
+    loaderCallback(null, content, map, meta);
+    return;
+  }
+
+  /**
+   * This is important to prevent recursion, otherwise this compiler
    * would spawn another instance of itsself recursively because it is
    * using the same webpack config that will call this loader for this
    * file again
@@ -54,10 +53,7 @@ module.exports = function vanillaExtractJsLoader(content, map, meta) {
    * We are setting the outputFileSystem to memfs which will write the
    * compiled code to the memory instead of the hard disk
    */
-  const childCompiler = this._compilation.createChildCompiler(
-    COMPILER_NAME,
-    outputOptions
-  );
+  const childCompiler = this._compilation.createChildCompiler(COMPILER_NAME, outputOptions);
   childCompiler.outputFileSystem = memfs;
 
   /**
@@ -79,7 +75,13 @@ module.exports = function vanillaExtractJsLoader(content, map, meta) {
    */
   childCompiler.runAsChild((error, _entries, childCompilation) => {
     const { warnings, errors } = childCompilation.getStats().toJson();
-    const source = childCompilation.assets[outputOptions.filename]?.source();
+    const source = childCompilation.assets[pathToCompile]?.source();
+
+    childCompilation.chunks.forEach(chunk => {
+      chunk.files.forEach(file => {
+        childCompilation.deleteAsset(file);
+      });
+    });
 
     if (warnings.length) {
       warnings.forEach(warning => console.warn(warning));
@@ -96,9 +98,7 @@ module.exports = function vanillaExtractJsLoader(content, map, meta) {
     }
 
     if (!source) {
-      loaderCallback(
-        new Error("Failed to get source in vanilla extract loader")
-      );
+      loaderCallback(new Error("Failed to get source in vanilla extract loader"));
       return;
     }
 

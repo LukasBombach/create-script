@@ -1,9 +1,9 @@
 const createHash = require("webpack/lib/util/createHash");
 const NullFactory = require("webpack/lib/NullFactory");
 const ConstDependency = require("webpack/lib/dependencies/ConstDependency");
+const pkg = require("../package.json");
 
 const pluginName = "create-script-plugin";
-const pkg = require("../package.json");
 
 const VALUE_DEP_MAIN = "CreateScriptPlugin/hash";
 const VALUE_DEP_PREFIX = "CreateScriptPlugin/dep";

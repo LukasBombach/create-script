@@ -15,5 +15,8 @@
   },
   "peerDependencies": {
     "react": ">17"
+  },
+  "dependencies": {
+    "memfs": "3.4.0"
   }
 }

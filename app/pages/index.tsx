@@ -2,10 +2,10 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
-import { compileToString } from "create-script";
+import { createInlineScript } from "create-script/react";
 
-const compiledSource = compileToString("./inline.ts");
-console.log("compiledSource is", compiledSource);
+const InlineScript = createInlineScript("./inline.ts");
+console.log("InlineScript", InlineScript);
 
 const Home: NextPage = () => {
   return (
