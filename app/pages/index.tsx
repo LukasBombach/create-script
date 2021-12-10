@@ -4,8 +4,8 @@ import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import { compileToString } from "create-script";
 
-const InlineJs = compileToString("./inline.ts");
-console.log("InlineJs is", InlineJs);
+const compiledSource = compileToString("./inline.ts");
+console.log("compiledSource is", compiledSource);
 
 const Home: NextPage = () => {
   return (

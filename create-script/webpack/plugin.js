@@ -21,6 +21,7 @@ class CreateScriptPlugin {
 
       const mainHash = createHash(compilation.outputOptions.hashFunction);
       mainHash.update(compilation.valueCacheVersions.get(VALUE_DEP_MAIN) || "");
+      compilation.valueCacheVersions.set(VALUE_DEP_MAIN, mainHash.digest("hex").slice(0, 8));
 
       compiler.hooks.normalModuleFactory.tap(pluginName, factory => {
         factory.hooks.parser.for("javascript/auto").tap(pluginName, parser => {
@@ -41,6 +42,7 @@ class CreateScriptPlugin {
           parser.hooks.call.for(IMPORT_TAG).tap(pluginName, expression => {
             const path = expression.arguments[0].value;
             const key = `${VALUE_DEP_PREFIX}/${path}`;
+
             mainHash.update(`|${key}`);
             parser.state.module.buildInfo.valueDependencies.set(key, compilation.valueCacheVersions.get(key));
 
@@ -52,8 +54,6 @@ class CreateScriptPlugin {
           });
         });
       });
-
-      compilation.valueCacheVersions.set(VALUE_DEP_MAIN, mainHash.digest("hex").slice(0, 8));
     });
   }
 }
