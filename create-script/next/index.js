@@ -1,6 +1,5 @@
-// const { resolve } = require("path");
-// const CreateScriptPlugin = require("../webpack/plugin");
-const createScriptLoader = require("../webpack/loader");
+const { resolve } = require("path");
+const loader = resolve(__dirname, "../webpack/loader");
 
 /** @param {import('next').NextConfig} nextConfig */
 module.exports = (nextConfig = {}) => {
@@ -16,7 +15,7 @@ module.exports = (nextConfig = {}) => {
 
       config.module.rules.unshift({
         test: /(\.jsx?$|\.tsx?$)/i,
-        use: [createScriptLoader, options.defaultLoaders.babel],
+        use: [options.defaultLoaders.babel, loader],
       });
 
       if (typeof nextConfig.webpack === "function") {

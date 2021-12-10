@@ -4,7 +4,7 @@ import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import { createInlineScript } from "create-script/react";
 
-const InlineScript = createInlineScript("./inline.ts");
+const InlineScript = createInlineScript("../inline.ts");
 console.log("InlineScript", InlineScript);
 
 const Home: NextPage = () => {

@@ -1,3 +1,5 @@
+const { dirname, join } = require("path");
+const fs = require("fs");
 const { fs: memfs } = require("memfs");
 
 /**
@@ -22,17 +24,8 @@ module.exports = function createScriptLoader(content, map, meta) {
   const EntryOptionPlugin = this._compiler.webpack.EntryOptionPlugin;
   const outputOptions = { filename: "output.js" };
   const loaderCallback = this.async();
-
-  const pathToCompile = /createInlineScript\(['"](?<path>.+?)['"]\)/.exec(content)?.groups?.path;
-
-  /**
-   * If a file loaded with this compiler does not use createInlineScript
-   *  we do mot have to do anything
-   */
-  if (!pathToCompile) {
-    loaderCallback(null, content, map, meta);
-    return;
-  }
+  const pathArg = /createInlineScript\(['"](?<path>.+?)['"]\)/.exec(content)?.groups?.path;
+  const cwd = dirname(this.resource);
 
   /**
    * This is important to prevent recursion, otherwise this compiler
@@ -41,6 +34,15 @@ module.exports = function createScriptLoader(content, map, meta) {
    * file again
    */
   if (this._compiler.name === COMPILER_NAME) {
+    loaderCallback(null, content, map, meta);
+    return;
+  }
+
+  /**
+   * If a file loaded with this compiler does not use createInlineScript
+   *  we do mot have to do anything
+   */
+  if (!pathArg) {
     loaderCallback(null, content, map, meta);
     return;
   }
@@ -63,7 +65,7 @@ module.exports = function createScriptLoader(content, map, meta) {
    * called on (and its dependencies (the files it imports))
    */
   EntryOptionPlugin.applyEntryOption(childCompiler, this._compiler.context, {
-    child: { import: [this.resourcePath] },
+    child: { import: [join(cwd, pathArg)] },
   });
 
   /**
@@ -75,7 +77,7 @@ module.exports = function createScriptLoader(content, map, meta) {
    */
   childCompiler.runAsChild((error, _entries, childCompilation) => {
     const { warnings, errors } = childCompilation.getStats().toJson();
-    const source = childCompilation.assets[pathToCompile]?.source();
+    const source = childCompilation.assets[outputOptions.filename]?.source();
 
     childCompilation.chunks.forEach(chunk => {
       chunk.files.forEach(file => {
@@ -98,7 +100,7 @@ module.exports = function createScriptLoader(content, map, meta) {
     }
 
     if (!source) {
-      loaderCallback(new Error("Failed to get source in vanilla extract loader"));
+      loaderCallback(new Error("Failed to get source in create script loader"));
       return;
     }
 
@@ -108,8 +110,10 @@ module.exports = function createScriptLoader(content, map, meta) {
         return;
       }
 
+      const newContent = content.replace(/createInlineScript\(['"].+?['"]\)/, `createInlineScript(\`${source}\`)`);
+
       // todo this is not minified
-      loaderCallback(null, `module.exports = ${JSON.stringify(source)};`);
+      loaderCallback(null, newContent);
     });
   });
 };
