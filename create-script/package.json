@@ -2,8 +2,10 @@
   "name": "create-script",
   "version": "1.0.0",
   "license": "MIT",
-  "main": "webpack/index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": [
+    "lib/index.js",
     "react/index.js",
     "next/index.js"
   ],
