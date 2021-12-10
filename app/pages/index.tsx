@@ -5,6 +5,7 @@ import styles from "../styles/Home.module.css";
 import { createInlineScript } from "create-script/react";
 
 const InlineJs = createInlineScript("./inline.ts");
+console.log(InlineJs);
 
 const Home: NextPage = () => {
   return (
@@ -16,7 +17,6 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <InlineJs />
         <h1 className={styles.title}>
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
