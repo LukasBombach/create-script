@@ -1,5 +1,4 @@
 const { dirname, join } = require("path");
-const fs = require("fs");
 const { fs: memfs } = require("memfs");
 
 /**
@@ -21,6 +20,7 @@ const { fs: memfs } = require("memfs");
  */
 module.exports = function createScriptLoader(content, map, meta) {
   const COMPILER_NAME = "CreateScriptCompiler";
+  const PLUGIN_NAME = "CreateScriptCompiler Pluging";
   const EntryOptionPlugin = this._compiler.webpack.EntryOptionPlugin;
   const outputOptions = { filename: "output.js" };
   const loaderCallback = this.async();
@@ -47,6 +47,8 @@ module.exports = function createScriptLoader(content, map, meta) {
     return;
   }
 
+  const { webpack } = this._compiler;
+
   /**
    * We are creating a child compiler from the current compilation which
    * allows us to independently compile code with the same config as
@@ -55,18 +57,22 @@ module.exports = function createScriptLoader(content, map, meta) {
    * We are setting the outputFileSystem to memfs which will write the
    * compiled code to the memory instead of the hard disk
    */
-  const childCompiler = this._compilation.createChildCompiler(COMPILER_NAME, outputOptions);
+  const childCompiler = this._compilation.createChildCompiler(COMPILER_NAME, outputOptions, [
+    new webpack.LoaderTargetPlugin("web"),
+    new webpack.EntryPlugin(this._compiler.context, join(cwd, pathArg), { name: "create-script-entry" }),
+    new webpack.library.EnableLibraryPlugin("commonjs2"),
+  ]);
   childCompiler.outputFileSystem = memfs;
 
-  /**
-   * Because we are inheriting the exact configuration from the parent
-   * compilation we need to overwrite the entry file settings and make
-   * the child compiler only compile the one file this loader has been
-   * called on (and its dependencies (the files it imports))
-   */
-  EntryOptionPlugin.applyEntryOption(childCompiler, this._compiler.context, {
-    child: { import: [join(cwd, pathArg)] },
-  });
+  childCompiler.options.devtool = false;
+
+  childCompiler.options.mode = "production";
+
+  childCompiler.options.optimization = {
+    ...childCompiler.options.optimization,
+    minimize: true,
+    concatenateModules: true,
+  };
 
   /**
    * This will start the compilation and call a callback when its done
@@ -109,6 +115,8 @@ module.exports = function createScriptLoader(content, map, meta) {
         loaderCallback(error);
         return;
       }
+
+      debugger;
 
       const newContent = content.replace(/createInlineScript\(['"].+?['"]\)/, `createInlineScript(\`${source}\`)`);
 
