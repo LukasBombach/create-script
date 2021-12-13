@@ -66,13 +66,13 @@ module.exports = function createScriptLoader(content, map, meta) {
 
   childCompiler.options.devtool = false;
 
-  childCompiler.options.mode = "production";
+  //childCompiler.options.mode = "production";
 
-  childCompiler.options.optimization = {
-    ...childCompiler.options.optimization,
-    minimize: true,
-    concatenateModules: true,
-  };
+  // childCompiler.options.optimization = {
+  //   ...childCompiler.options.optimization,
+  //   minimize: true,
+  //   concatenateModules: true,
+  // };
 
   /**
    * This will start the compilation and call a callback when its done
